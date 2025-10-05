@@ -1,0 +1,38 @@
+name: CI with Caching
+
+on:
+  push:
+    branches: [ "main" ]
+  workflow_dispatch:
+
+jobs:
+  build-with-cache:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v5
+      
+      - name: Create virtual environment
+        run: uv venv
+
+      - name: Cache uv dependencies
+        uses: actions/cache@v4
+        id: cache-uv
+        with:
+          path: ~/.cache/uv
+          key: cache-d0bd666
+
+      - name: Install dependencies
+        run: uv pip install -r requirements.txt
+
+      - name: prime-cache-d0bd666
+        run: |
+          if [[ "${{ steps.cache-uv.outputs.cache-hit }}" == "true" ]]; then
+            echo "Cache hit! Dependencies were restored."
+          else
+            echo "Cache miss. Dependencies were installed and cache will be saved."
+          fi
